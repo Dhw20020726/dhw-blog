@@ -184,7 +184,8 @@ async function uploadIndex(recordsFromCaller) {
 
   console.log(`准备上传 ${records.length} 条记录到 Algolia 索引 ${indexName} ...`);
 
-  await index.replaceAllObjects(records, { safe: true });
+  await index.clearObjects();
+  await index.saveObjects(records);
 
   await index.setSettings({
     searchableAttributes: ['hierarchy.lvl0', 'hierarchy.lvl1', 'hierarchy.lvl2', 'hierarchy.lvl3', 'hierarchy.lvl4', 'hierarchy.lvl5', 'hierarchy.lvl6', 'title', 'headings', 'summary', 'content'],
