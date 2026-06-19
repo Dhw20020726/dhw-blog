@@ -13,7 +13,7 @@ const config = {
   title: 'Dev Blog',
   tagline: 'Angular · Spring Boot · React',
   url: 'https://dhw20020726.github.io',
-  baseUrl: '/',
+  baseUrl: '/dhw-blog/',
   onBrokenLinks: 'throw',
   markdown: {
     hooks: { onBrokenMarkdownLinks: 'warn' },
