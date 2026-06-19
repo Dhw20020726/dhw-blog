@@ -1,6 +1,11 @@
 module.exports = {
   docsSidebar: [
     {
+      type: 'doc',
+      id: 'docusaurus-guide',
+      label: 'Docusaurus 知识点',
+    },
+    {
       type: 'category',
       label: 'Angular',
       collapsed: false,
