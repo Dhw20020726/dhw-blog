@@ -182,28 +182,16 @@ async function uploadIndex(recordsFromCaller) {
   const client = algoliasearch(appId, adminApiKey);
   const index = client.initIndex(indexName);
 
-  console.log(`App ID: ${appId}\n索引名: ${indexName}\n准备上传 ${records.length} 条记录...`);
+  console.log(`准备上传 ${records.length} 条记录到 Algolia 索引 ${indexName} ...`);
 
-  try {
-    await index.replaceAllObjects(records, { safe: true });
-    console.log('记录上传成功');
-  } catch (err) {
-    console.error('上传记录失败:', err.message);
-    throw err;
-  }
+  await index.replaceAllObjects(records, { safe: true });
 
-  try {
-    await index.setSettings({
-      searchableAttributes: ['hierarchy.lvl0', 'hierarchy.lvl1', 'hierarchy.lvl2', 'hierarchy.lvl3', 'hierarchy.lvl4', 'hierarchy.lvl5', 'hierarchy.lvl6', 'title', 'headings', 'summary', 'content'],
-      attributesToSnippet: ['summary:50', 'content:25'],
-      attributesToHighlight: ['hierarchy.lvl0', 'hierarchy.lvl1', 'hierarchy.lvl2', 'hierarchy.lvl3', 'hierarchy.lvl4', 'hierarchy.lvl5', 'hierarchy.lvl6', 'summary', 'content'],
-      attributesForFaceting: ['filterOnly(tags)', 'filterOnly(category)', 'filterOnly(language)', 'filterOnly(docusaurus_tag)'],
-    });
-    console.log('索引设置更新成功');
-  } catch (err) {
-    console.error('设置索引失败:', err.message);
-    throw err;
-  }
+  await index.setSettings({
+    searchableAttributes: ['hierarchy.lvl0', 'hierarchy.lvl1', 'hierarchy.lvl2', 'hierarchy.lvl3', 'hierarchy.lvl4', 'hierarchy.lvl5', 'hierarchy.lvl6', 'title', 'headings', 'summary', 'content'],
+    attributesToSnippet: ['summary:50', 'content:25'],
+    attributesToHighlight: ['hierarchy.lvl0', 'hierarchy.lvl1', 'hierarchy.lvl2', 'hierarchy.lvl3', 'hierarchy.lvl4', 'hierarchy.lvl5', 'hierarchy.lvl6', 'summary', 'content'],
+    attributesForFaceting: ['filterOnly(tags)', 'filterOnly(category)', 'filterOnly(language)', 'filterOnly(docusaurus_tag)'],
+  });
 
   console.log('索引上传完成');
 }
