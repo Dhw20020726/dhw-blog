@@ -177,7 +177,7 @@ function readIndexFile() {
 }
 
 async function uploadIndex(recordsFromCaller) {
-  const { appId, adminApiKey, indexName } = resolveAlgoliaEnv({ requireAdmin: true, requireSearch: true });
+  const { appId, adminApiKey, indexName } = resolveAlgoliaEnv({ requireAdmin: true });
   const records = recordsFromCaller || readIndexFile();
   const client = algoliasearch(appId, adminApiKey);
   const index = client.initIndex(indexName);
