@@ -3,9 +3,9 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 
 const topics = [
-  { title: 'Angular', description: '企业级前端框架，基于 TypeScript，适合大型单页应用。', to: '/docs/category/angular', color: '#dd0031' },
-  { title: 'SpringBoot', description: 'Spring 快速开发框架，自动配置、内嵌服务器。', to: '/docs/category/springboot', color: '#6db33f' },
-  { title: 'React', description: '声明式 UI 库，组件化、虚拟 DOM、丰富生态。', to: '/docs/category/react', color: '#61dafb' },
+  { title: 'Angular', description: '企业级前端框架，基于 TypeScript，适合大型单页应用。', to: '/docs/angular/intro', color: '#dd0031' },
+  { title: 'SpringBoot', description: 'Spring 快速开发框架，自动配置、内嵌服务器。', to: '/docs/springboot/intro', color: '#6db33f' },
+  { title: 'React', description: '声明式 UI 库，组件化、虚拟 DOM、丰富生态。', to: '/docs/react/intro', color: '#61dafb' },
 ];
 
 export default function Home() {

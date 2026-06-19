@@ -91,9 +91,53 @@ module.exports = {
 
 ### baseUrl 特别注意
 
-- **用户站点**（`用户名.github.io` 这种）：`baseUrl: '/'`
-- **项目站点**（`用户名.github.io/仓库名`）：`baseUrl: '/仓库名/'`
-- URL + baseUrl 必须等于最终完整的站点地址
+`baseUrl` 告诉 Docusaurus "网站部署在域名的哪个子路径下"。
+
+**最终 URL 是怎么拼出来的：**
+
+```
+url                 +  baseUrl         +  页面路径     =  完整 URL
+https://xxx.github.io  /dhw-blog/         docs/intro   →  https://xxx.github.io/dhw-blog/docs/intro
+```
+
+这三个部分各管各的：
+- `url`：域名（协议 + 主机名），不带尾斜杠
+- `baseUrl`：域名后面要补的前缀路径，**必须首尾都有 `/`**（比如 `/dhw-blog/`，不是 `dhw-blog`）
+- 页面路径：Docusaurus 根据你的 `docs/` 和 `src/pages/` 自动生成
+
+**为什么会有 baseUrl 这个东西？**
+
+因为有些网站不是放在域名根目录的。比如 GitHub Pages：
+
+```
+https://dhw20020726.github.io/           ← 这是用户站点，域名的根
+https://dhw20020726.github.io/dhw-blog/  ← 这是项目站点，多了一层 /dhw-blog/
+```
+
+GitHub 给每个仓库分配的地址格式是 `用户名.github.io/仓库名/`，所以你的网页不在根目录，而在 `/dhw-blog/` 这个子目录下。
+
+**两种情况：**
+
+| 场景 | 例子 | baseUrl | 原因 |
+|------|------|---------|------|
+| 用户站点 | `dhw20020726.github.io` | `'/'` | 网站就在域名根目录 |
+| 项目站点 | `dhw20020726.github.io/dhw-blog` | `'/dhw-blog/'` | 网站前面多了一层仓库名 |
+
+**baseUrl 影响什么？**
+
+Docusaurus 内部所有路径都基于 baseUrl 生成：
+- CSS / JS 文件引用：`/dhw-blog/assets/css/xxx.css`
+- 页面间链接：`/dhw-blog/docs/angular/intro`
+- 图片路径：`/dhw-blog/img/logo.svg`
+- 搜索索引、favicon 等
+
+**设错会怎样？**
+
+`baseUrl: '/'`（但仓库叫 dhw-blog）→ 部署后所有静态资源 404，页面空白，控制台报错 "Docusaurus site did not load properly"。因为浏览器去 `https://xxx.github.io/assets/css/xxx.css` 找文件，但实际文件在 `https://xxx.github.io/dhw-blog/assets/css/xxx.css`。
+
+**怎么验证？**
+
+你仓库名如果是 `dhw-blog`，部署地址就是 `https://用户名.github.io/dhw-blog/`，那 `baseUrl` 就必须是 `'/dhw-blog/'`。
 
 ---
 
@@ -131,11 +175,87 @@ module.exports = {
 - items 里的 `'angular/intro'` 会自动映射到 `docs/angular/intro.md`
 - 路径不需要写 `.md` 后缀，相对于 `docs/` 目录
 
+### category 的 `link` 属性
+
+`link` 控制点击分类名时的行为：
+
+**有 `link` 时：**
+```js
+{
+  type: 'category',
+  label: 'React',
+  link: { type: 'generated-index', title: 'React', description: '...' },
+  items: ['react/intro', 'react/hooks'],
+}
+```
+- Docusaurus 自动生成分类首页 `/docs/category/react`，列出该分类下所有文章
+- 点击分类名 → 跳转到这个分类首页
+- 首页卡片和重定向可以指向 `/docs/category/xxx`
+
+**没有 `link` 时：**
+```js
+{
+  type: 'category',
+  label: 'React',
+  items: ['react/intro', 'react/hooks'],
+}
+```
+- 分类名只是一个**折叠/展开按钮**，没有自己的页面
+- `/docs/category/xxx` 不存在，指向它会 404
+- 首页卡片只能链接到具体文章，比如 `/docs/react/intro`
+- 侧边栏仍然正常显示分类和子项，只是分类名不可点击跳转
+
+### `@type` JSDoc 注释
+
+```js
+/** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
+const sidebars = {
+  docsSidebar: [...],
+};
+```
+
+- 这是 **JSDoc 类型注释**，不是代码，不影响运行
+- 告诉编辑器 "这个变量是 `SidebarsConfig` 类型"
+- 效果：在 VS Code 里写 items、type 时有**自动补全**，写错了有**红色波浪线**
+- `import('...')` 是 TypeScript 语法，JSDoc 借用它来动态引入类型定义（`@docusaurus/plugin-content-docs` 包里自带了 `.d.ts` 类型文件）
+- 同理 `docusaurus.config.js` 第一行的 `// @ts-check` + `/** @type {import('@docusaurus/types').Config} */` 也是同一套用法 — 纯 JS 文件获得 TypeScript 的类型检查能力，无需编译
+
 ---
 
 ## 5. Theme Swizzling（主题覆盖）
 
 `src/theme/` 下的文件名如果和 Docusaurus 默认主题组件同名，会自动替换默认的。
+
+### 页面加载顺序（类似 Angular 的 `index.html → main.ts → AppComponent`）
+
+Docusaurus/React 也有自己的加载链条：
+
+```
+浏览器请求 URL
+  ↓
+1. 静态 HTML（预渲染的壳子，含 <div id="__docusaurus">）
+  ↓
+2. 客户端 JS bundle 下载并执行（@docusaurus/core 入口）
+  ↓
+3. React 接管页面，开始构建组件树，从外向内渲染：
+  ↓
+<Root>                          ← 你的 src/theme/Root.jsx（覆盖默认）
+  └── <Layout>                  ← Docusaurus 默认（导航栏 + 侧边栏 + 内容壳）
+        └── <你的页面组件>       ← src/pages/index.jsx 或 docs 插件渲染的 Markdown
+  ↓
+4. 每个组件渲染完成后，内部的 useEffect 依次触发
+```
+
+**对比 Angular：**
+
+| 步骤 | Angular | Docusaurus / React |
+|------|---------|-------------------|
+| HTML 入口 | `index.html` | 构建生成的静态 HTML（含 `<div id="__docusaurus">`） |
+| 启动模块 | `main.ts` → `bootstrapModule(AppModule)` | `@docusaurus/core` 客户端入口 → `ReactDOM.render()` |
+| 根组件 | `AppComponent` | `Root`（可 swizzle 覆盖）→ `Layout` |
+| 路由解析 | RouterModule 匹配 URL → 加载对应 Component | React Router 匹配 URL → 渲染对应页面 |
+| 页面内容 | 对应 Component 的模板 | `src/pages/` 下的 React 组件，或 docs 插件渲染 Markdown |
+| 生命周期 | `ngOnInit` | `useEffect(() => {}, [])` |
 
 ### `Root.jsx` — 全局根组件
 
@@ -146,20 +266,66 @@ export default function Root({ children }) {  // children = 所有页面内容
 }
 ```
 
-- 所有页面的最外层包裹
-- 留在这里是为了以后可能插入全局逻辑（如埋点、上次阅读位置等）
+- **非必须**：`src/theme/Root.jsx` 是 swizzle 覆盖，删掉后 Docusaurus 用自己的默认 Root，一切正常运行
+- 它是 React 组件树的**最外层**，所有页面的公共祖先
+- 常见用途：全局埋点（page view tracking）、主题 provider、CSS 变量注入、上次阅读位置恢复等
+- 当前项目什么都没做，`{children}` 原样透传 — 纯为以后扩展留入口
 - `{ children }` 是 React 的 children prop，代表组件标签内部的所有内容
 
 ### `MDXComponents.jsx` — 自定义 Markdown 渲染
 
-```js
-import MDXComponents from '@theme-original/MDXComponents';  // 默认映射表
-export default { ...MDXComponents };                        // 展开原样返回
+Docusaurus 渲染 Markdown 时，每个元素对应一个 React 组件：
+
+```
+Markdown                      →  React 组件
+## 标题                        →  <h2>标题</h2>
+| 表格 | 内容 |                →  <table>...</table>
+`代码`                         →  <code>代码</code>
 ```
 
-- `@theme-original` 是 Docusaurus 内部路径别名，指向未被覆盖的原始组件
-- `...` 展开运算符：把默认映射表的所有键值对复制到新对象
-- 默认什么都不改，留入口。要自定义时加：`{ ...MDXComponents, h2: MyH2 }`
+`MDXComponents` 就是一张 **映射表**，你可以把默认的组件替换成自定义的：
+
+```js
+import MDXComponents from '@theme-original/MDXComponents';
+export default { ...MDXComponents, h2: MyH2 };
+//                                  ↑    ↑
+//                              元素名  你自定义的组件
+```
+
+**具体例子：给所有 `<h2>` 加一个可点击的锚点链接**
+
+```
+默认 h2 渲染效果：    ## 安装步骤
+
+替换后 h2 渲染效果：  ## 安装步骤 #
+                              ↑ 鼠标悬停出现，点它可以复制当前标题的链接
+```
+
+```js
+import MDXComponents from '@theme-original/MDXComponents';
+import React from 'react';
+
+function MyH2(props) {
+  const id = props.id;  // Docusaurus 自动生成的锚点 id
+  return (
+    <h2 {...props}>                {/* 保留默认 h2 的所有属性 */}
+      {props.children}             {/* 原标题文字 */}
+      <a href={`#${id}`} className="anchor-link">#</a>  {/* 追加锚点链接 */}
+    </h2>
+  );
+}
+
+export default { ...MDXComponents, h2: MyH2 };
+```
+
+逐行解释：
+- `{ ...MDXComponents, h2: MyH2 }`：把默认映射表展开，只把其中 `h2` 替换成 `MyH2`，其他元素（h1、table、code 等）保持默认
+- `function MyH2(props)`：拿到 Docusaurus 传给 h2 的属性（id、className、children 等）
+- `{...props}`：把原属性全部透传给 `<h2>`，不丢任何东西
+- `{props.children}`：渲染原标题文字
+- `<a href=...>#</a>`：追加自己的内容
+
+可以替换的元素列表：`h1` `h2` `h3` `h4` `h5` `h6` `a` `img` `table` `code` `pre` `p` `ul` `ol` `li` `blockquote` `hr` `em` `strong` `del` `input` 等。
 
 ---
 
