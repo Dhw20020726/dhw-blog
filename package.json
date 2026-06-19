@@ -1,0 +1,32 @@
+{
+  "name": "dhw-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tech blog about Angular, Spring Boot and React",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "index:generate": "node ./scripts/algoliaIndex.js generate",
+    "index:upload": "node ./scripts/algoliaIndex.js upload",
+    "index:all": "node ./scripts/algoliaIndex.js all"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.4.0",
+    "@docusaurus/preset-classic": "^3.4.0",
+    "algoliasearch": "^4.24.0",
+    "clsx": "^2.1.1",
+    "fast-glob": "^3.3.2",
+    "gray-matter": "^4.0.3",
+    "mdast-util-to-string": "^4.0.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remove-markdown": "^0.5.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "browserslist": {
+    "production": [">0.5%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}
