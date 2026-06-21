@@ -18,7 +18,7 @@ const sidebars = {
       type: 'category',
       label: 'SpringBoot',
       collapsed: true,
-      items: ['springboot/intro', 'springboot/rest-api'],
+      items: ['springboot/intro', 'springboot/rest-api', 'springboot/0621'],
     },
     {
       type: 'category',
